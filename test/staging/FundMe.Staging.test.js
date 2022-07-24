@@ -2,17 +2,6 @@ const { network, ethers, getNamedAccounts } = require("hardhat")
 const { developmentChains } = require("../../helper-hardhat-config")
 const { assert } = require("chai")
 
-/* let someVar = variable ? "si" : "no"
-*                  /        
-*                Si esto es cierto entonces es el valor antes de los :
-*                Si es falso es el valor de despues 
-* Seria equivalente a:
-* if(algo pasa) {
-*    "si"
-* } else {
-*    no
-}
-*/
 developmentChains.includes(network.name)
     ? describe.skip
     : describe("FundMe Staging tests", async function () {

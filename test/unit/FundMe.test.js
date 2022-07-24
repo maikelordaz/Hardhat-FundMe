@@ -10,24 +10,9 @@ const { developmentChains } = require("../../helper-hardhat-config")
           const sendValue = ethers.utils.parseEther("1")
 
           beforeEach(async () => {
-              /*
-               * La siguiente linea de codigo se puede sustituir por estas dos
-               * const accounts = await ethers.getSigners()
-               *  deployer = accounts[0]
-               */
               deployer = (await getNamedAccounts()).deployer
-
-              /* Voy a hacer deploy usando hardhat deploy, para eso uso una funcion de deployments
-               * que se llama fixture, que le puedo pasarcomo argumento alguno de los tags que coloque
-               * en los scripts de la carpeta deploy, en este caso usare el tag "all"  y con esto hago
-               * deploy a todo lo que este en la carpeta deploy solo con la siguiente linea
-               */
               await deployments.fixture(["all"])
-              // Luego de hacerle deploy a todos los contratos, los tomo con getContract
-              fundMe = await ethers.getContract(
-                  "FundMe" /*nombre del contrato*/,
-                  deployer
-              )
+              fundMe = await ethers.getContract("FundMe", deployer)
               mockV3Aggregator = await ethers.getContract(
                   "MockV3Aggregator",
                   deployer
@@ -45,7 +30,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
           })
 
           describe("fund", async function () {
-              // tambien puede ser assert.fail
               it("Fails if you don't send enough ETH", async () => {
                   await expect(fundMe.fund()).to.be.revertedWith(
                       "You need to spend more ETH!"
@@ -67,34 +51,15 @@ const { developmentChains } = require("../../helper-hardhat-config")
           })
           describe("withdraw", async function () {
               beforeEach(async () => {
-                  // Antes de cada prueba le meto fondos al contrato
                   await fundMe.fund({ value: sendValue })
               })
               it("withdraws ETH from a single funder", async () => {
-                  /*
-                   * Esta prueba será mas larga, una buena forma de ordenar los test es:
-                   * 1. Arrange: estado inicial previo a las pruebas
-                   * 2. Act: ejecuto las funciones
-                   * 3. Assert: hago las pruebas y comparaciones
-                   */
-
-                  // ARRANGE: voy a ver el balance del contrato y el del deployer
-
-                  // también podria ser ethers.provider.getBalance(fundMe.address)
                   const startingFundMeBalance =
                       await fundMe.provider.getBalance(fundMe.address)
                   const startingDeployerBalance =
                       await fundMe.provider.getBalance(deployer)
-
-                  // ACT: ejecuto la funcion withdraw y veo los nuevos balances del contrato y del deployer
-
                   const transactionResponse = await fundMe.withdraw()
                   const transactionReceipt = await transactionResponse.wait(1)
-                  /* De este transactionReceipt voy a sacar:
-                   * 1. gasUsed: gas usado
-                   * 2. effectiveGasPrice: precio del gas
-                   * Con eso calculo el gas total pagado
-                   */
                   const { gasUsed, effectiveGasPrice } = transactionReceipt
                   const gasCost = gasUsed.mul(effectiveGasPrice)
 
@@ -103,11 +68,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   )
                   const endingDeployerBalance =
                       await fundMe.provider.getBalance(deployer)
-
-                  // ASSERT: verifico si los balances cambiaron
-
                   assert.equal(endingFundMeBalance, 0)
-                  // uso .add() porque es un BigNumber, debo sumar el gas que se uso
                   assert.equal(
                       startingFundMeBalance
                           .add(startingDeployerBalance)
@@ -117,7 +78,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
               })
 
               it("is allows us to withdraw with multiple funders", async () => {
-                  // ARRANGE
                   const accounts = await ethers.getSigners()
                   for (i = 1; i < 6; i++) {
                       const fundMeConnectedContract = await fundMe.connect(
@@ -129,8 +89,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       await fundMe.provider.getBalance(fundMe.address)
                   const startingDeployerBalance =
                       await fundMe.provider.getBalance(deployer)
-
-                  // ACT
                   const transactionResponse = await fundMe.withdraw()
                   const transactionReceipt = await transactionResponse.wait(1)
                   const { gasUsed, effectiveGasPrice } = transactionReceipt
@@ -140,8 +98,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   )
                   const endingDeployerBalance =
                       await fundMe.provider.getBalance(deployer)
-
-                  // ASSERT
                   assert.equal(endingFundMeBalance, 0)
                   assert.equal(
                       startingFundMeBalance
@@ -149,7 +105,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
                           .toString(),
                       endingDeployerBalance.add(withdrawGasCost).toString()
                   )
-                  // Luego de esto me aseguro que el array de getFunder se resetee correctamente
                   await expect(fundMe.getFunder(0)).to.be.reverted
 
                   for (i = 1; i < 6; i++) {

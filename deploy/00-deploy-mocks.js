@@ -13,10 +13,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             contract: "MockV3Aggregator",
             from: deployer,
             log: true,
-            args: [DECIMALS, INITIAL_PRICE], // Los argumentos del constructor del mock
+            args: [DECIMALS, INITIAL_PRICE],
         })
         log("Mocks Deployed!")
-        log("------------------------------------------------") // Solo una linea para darme cuenta cual es el final en el terminal
+        log("------------------------------------------------")
         log(
             "You are deploying to a local network, you'll need a local network running to interact"
         )
@@ -27,9 +27,3 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     }
 }
 module.exports.tags = ["all", "mocks"]
-
-/*
- * Con esta ultima linea lo que logro es hacer deploys especificos usando el comando
- * yarn hardhat deploy --tags mocks
- * Asi hago deploy solo al mock
- */
